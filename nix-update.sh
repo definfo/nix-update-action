@@ -4,6 +4,7 @@ set -euo pipefail
 enterFlakeFolder() {
   if [[ -n "$PATH_TO_FLAKE_DIR" ]]; then
     cd "$PATH_TO_FLAKE_DIR"
+    export NIX_PATH='nixpkgs=flake:nixpkgs'
   fi
 }
 
@@ -24,11 +25,16 @@ updatePackages() {
   # update packages
   for PACKAGE in ${PACKAGES//,/ }; do
     if [[ ",$BLACKLIST," == *",$PACKAGE,"* ]]; then
-        echo "Package '$PACKAGE' is blacklisted, skipping."
+        echo "🙀 Package '$PACKAGE' is blacklisted, skipping."
         continue
     fi
-    echo "Updating package '$PACKAGE'."
-    nix-update --flake --commit "$PACKAGE" 1>/dev/null
+    echo "🐖 Updating package '$PACKAGE' ..."
+    # nix-update --flake --commit --use-update-script "$PACKAGE" 1>/dev/null
+    if nix-update --flake --commit --use-update-script "$PACKAGE" 1>/dev/null 2>&1; then
+      echo "😺 Successfully updated '$PACKAGE'"
+    else
+      echo "😾 Failed to update '$PACKAGE'"
+    fi
   done
 }
 
